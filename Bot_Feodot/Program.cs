@@ -69,6 +69,42 @@ async Task HandleUpdateAsync(ITelegramBotClient botClient, Update update, Cancel
     
     await Shariy(false);
 
+    
+    async Task Sticker()
+    {
+        /*StreamReader sr = new(@"C:\Users\38050\RiderProjects\Bot_Feodot\Bot_Feodot\marx.txt");
+        var quotes = sr.ReadToEnd().Split('\n');        */
+
+        string fileName = @"C:\Users\38050\RiderProjects\Bot_Feodot\Bot_Feodot\result.json";
+        string jsonString = System.IO.File.ReadAllText(fileName);
+        JsonSerializerOptions? options = new JsonSerializerOptions
+        {
+            Encoder = JavaScriptEncoder.Create(UnicodeRanges.BasicLatin, UnicodeRanges.Cyrillic),
+            WriteIndented = true
+        };
+        Messages? feoMessages = 
+            JsonSerializer.Deserialize<Messages>(jsonString, options);
+        List<CustomMessage> feoMes = new List<CustomMessage>();
+        foreach (var mes in feoMessages?.messages!)
+        {
+            string? mesType = mes.media_type;
+            if (mes.from_id == "user5021024226" && mesType == "sticker" && mes.file.Contains("webp"))
+            {
+                feoMes.Add(mes);
+            }
+        }
+        var mesToSend = feoMes[rnd.Next(0, feoMes.Count)];
+        if (mesToSend.media_type == "sticker")
+        {
+            string path = @"https://raw.githubusercontent.com/PavelKuzennyi/BotF/main/stickers/" + 
+                          mesToSend.file.Split('/')[1].Replace(" ", "%20");
+            Console.WriteLine(path);
+            Message message = await botClient.SendStickerAsync(
+                chatId: chatId,
+                sticker: path,
+                cancellationToken: cancellationToken);
+        }
+    }
 
     async Task FeoMes()
     {
@@ -88,7 +124,7 @@ async Task HandleUpdateAsync(ITelegramBotClient botClient, Update update, Cancel
         foreach (var mes in feoMessages?.messages!)
         {
             string? thisMes = mes.text.ToString();
-            if (mes.from_id == "" && thisMes != "") 
+            if (mes.from_id == "user5021024226" && thisMes != "") 
             {
                 feoMes.Add(mes);
             }
@@ -101,7 +137,8 @@ async Task HandleUpdateAsync(ITelegramBotClient botClient, Update update, Cancel
         var mesToSend = feoMes[rnd.Next(0, feoMes.Count)];
         if (mesToSend.media_type == "sticker")
         {
-            string path = @"C:\Users\38050\RiderProjects\Bot_Feodot\Bot_Feodot\stickers\" + mesToSend.file.Split('/')[1];
+            string path = @"https://raw.githubusercontent.com/PavelKuzennyi/Bot_Feodot/master/Bot_Feodot/stickers/" + 
+                          mesToSend.file.Split('/')[1].Replace(" ", "%20");
             Console.WriteLine(path);
             Message message = await botClient.SendStickerAsync(
                 chatId: chatId,
@@ -246,6 +283,9 @@ async Task HandleUpdateAsync(ITelegramBotClient botClient, Update update, Cancel
         case "/cytata":
             await Quote();
             break;
+        case "/sticker":
+            await Sticker();
+            break;
         case "/shariy":
             await Shariy(true);
             break;
@@ -255,7 +295,7 @@ async Task HandleUpdateAsync(ITelegramBotClient botClient, Update update, Cancel
             sr.Close();
             if (rnd.Next(0, frequency) == 0 || messageText == "Ф")
             {
-                switch (rnd.Next(0, 4))
+                switch (rnd.Next(0, 5))
                 {
                     case 0:
                         await Voice();
@@ -268,6 +308,9 @@ async Task HandleUpdateAsync(ITelegramBotClient botClient, Update update, Cancel
                         break;
                     case 3:
                         await FeoMes();
+                        break;
+                    case 4:
+                        await Sticker();
                         break;
                 }
                 break;
