@@ -61,15 +61,9 @@ async Task HandleUpdateAsync(ITelegramBotClient botClient, Update update, Cancel
     {
         return;
     }
-    var messageText = update.Message.Text?.Split('@')[0];
-    string[]? messageWords = messageText?.Split(' ');
-    var reply = update.Message.ReplyToMessage?.From;
-
-    Console.WriteLine($"Received a '{messageText}' message in chat {chatId}."); 
-    
-    await Shariy(false);
 
     
+
     async Task Sticker()
     {
         /*StreamReader sr = new(@"C:\Users\38050\RiderProjects\Bot_Feodot\Bot_Feodot\marx.txt");
@@ -79,6 +73,7 @@ async Task HandleUpdateAsync(ITelegramBotClient botClient, Update update, Cancel
         string jsonString = System.IO.File.ReadAllText(fileName);
         JsonSerializerOptions? options = new JsonSerializerOptions
         {
+            
             Encoder = JavaScriptEncoder.Create(UnicodeRanges.BasicLatin, UnicodeRanges.Cyrillic),
             WriteIndented = true
         };
@@ -111,6 +106,7 @@ async Task HandleUpdateAsync(ITelegramBotClient botClient, Update update, Cancel
         /*StreamReader sr = new(@"C:\Users\38050\RiderProjects\Bot_Feodot\Bot_Feodot\marx.txt");
         var quotes = sr.ReadToEnd().Split('\n');        */
 
+        string quote = "";
         string fileName = @"C:\Users\38050\RiderProjects\Bot_Feodot\Bot_Feodot\result.json";
         string jsonString = System.IO.File.ReadAllText(fileName);
         JsonSerializerOptions? options = new JsonSerializerOptions
@@ -147,12 +143,14 @@ async Task HandleUpdateAsync(ITelegramBotClient botClient, Update update, Cancel
         }
         else
         {
-            string? quote = mesToSend.text.ToString();
+            quote = mesToSend.text.ToString();
             Message message = await botClient.SendTextMessageAsync(
                 chatId: chatId,
                 text: quote,
                 cancellationToken: cancellationToken);
         }
+
+        await Message(quote);
     }
     
     async Task Shiza()
@@ -227,7 +225,7 @@ async Task HandleUpdateAsync(ITelegramBotClient botClient, Update update, Cancel
     }
 
 
-    async Task Frequency()
+    async Task Frequency(string[] messageWords)
     {
         if (messageWords[^1].All(char.IsDigit))
         {
@@ -258,71 +256,85 @@ async Task HandleUpdateAsync(ITelegramBotClient botClient, Update update, Cancel
         }
     }
 
-    if (messageWords != null && messageWords.Contains("Ф") 
-                             && (messageWords.Contains("пизди") || messageWords.Contains("пиздите") ))
-    {
-        await Frequency();
-    }
+    var updateText = update.Message.Text?.Split('@')[0];
+    var reply = update.Message.ReplyToMessage?.From;
     
-    if (messageWords != null && messageWords.Contains("Ф") 
-                             && (messageWords.Contains("Маркс") || messageWords.Contains("маркс") 
-                                                                || messageWords.Contains("Маркса") 
-                                                                || messageWords.Contains("маркса")))
+    await Message(updateText);
+    
+    async Task Message(string messageText)
     {
-        await Quote();
-    }
+        string[]? messageWords = messageText?.Split(' ');
+        
 
-    else switch (messageText)
-    {
-        case "/voice" :
-            await Voice();
-            break;
-        case "/shiza":
-            await Shiza();
-            break;
-        case "/cytata":
+        Console.WriteLine($"Received a '{messageText}' message in chat {chatId}."); 
+    
+        await Shariy(false);
+        if (messageWords != null && messageWords.Contains("Ф") 
+                                 && (messageWords.Contains("пизди") || messageWords.Contains("пиздите") ))
+        {
+            await Frequency(messageWords);
+        }
+        
+        if (messageWords != null && messageWords.Contains("Ф") 
+                                 && (messageWords.Contains("Маркс") || messageWords.Contains("маркс") 
+                                                                    || messageWords.Contains("Маркса") 
+                                                                    || messageWords.Contains("маркса")))
+        {
             await Quote();
-            break;
-        case "/sticker":
-            await Sticker();
-            break;
-        case "/shariy":
-            await Shariy(true);
-            break;
-        default:
-            StreamReader sr = new(@"C:\Users\38050\RiderProjects\Bot_Feodot\Bot_Feodot\timer.txt");
-            var frequency = int.Parse(sr.ReadToEnd());
-            sr.Close();
-            if (rnd.Next(0, frequency) == 0 || messageText == "Ф")
-            {
-                switch (rnd.Next(0, 5))
-                {
-                    case 0:
-                        await Voice();
-                        break;
-                    case 1:
-                        await Shiza();
-                        break;
-                    case 2:
-                        await Quote();
-                        break;
-                    case 3:
-                        await FeoMes();
-                        break;
-                    case 4:
-                        await Sticker();
-                        break;
-                }
+        }
+    
+        else switch (messageText)
+        {
+            case "/voice" :
+                await Voice();
                 break;
-            }
-
-            if (messageText.Contains('Ф') || reply?.ToString() == "@feodot_bot (5250704485)")
-            {
-                await FeoMes();
-            }
-            break;   
+            case "/shiza":
+                await Shiza();
+                break;
+            case "/cytata":
+                await Quote();
+                break;
+            case "/sticker":
+                await Sticker();
+                break;
+            case "/shariy":
+                await Shariy(true);
+                break;
+            default:
+                StreamReader sr = new(@"C:\Users\38050\RiderProjects\Bot_Feodot\Bot_Feodot\timer.txt");
+                var frequency = int.Parse(sr.ReadToEnd());
+                sr.Close();
+                if (rnd.Next(0, frequency) == 0 || messageText == "Ф")
+                {
+                    switch (rnd.Next(0, 5))
+                    {
+                        case 0:
+                            await Voice();
+                            break;
+                        case 1:
+                            await Shiza();
+                            break;
+                        case 2:
+                            await Quote();
+                            break;
+                        case 3:
+                            await FeoMes();
+                            break;
+                        case 4:
+                            await Sticker();
+                            break;
+                    }
+                    break;
+                }
+    
+                if (messageText.Contains('Ф') || reply?.ToString() == "@feodot_bot (5250704485)")
+                {
+                    reply = null;
+                    await FeoMes();
+                }
+                break;   
+        }
     }
-
 }
 
 Task HandleErrorAsync(ITelegramBotClient botClient, Exception exception, CancellationToken cancellationToken)
