@@ -168,7 +168,7 @@ async Task HandleUpdateAsync(ITelegramBotClient botClient, Update update, Cancel
 
     async Task Voice()
     {
-        int voiceNumber = rnd.Next(1, 11);
+        int voiceNumber = rnd.Next(1, 12);
         Message message;
         await using (var stream = System.IO.File.
             OpenRead($@"C:\Users\38050\RiderProjects\Bot_Feodot\Bot_Feodot\{voiceNumber}.ogg")) 

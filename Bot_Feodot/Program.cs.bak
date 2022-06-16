@@ -1,6 +1,8 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
+using System.Text;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Bot_Feodot;
@@ -9,9 +11,14 @@ using Telegram.Bot.Exceptions;
 using Telegram.Bot.Extensions.Polling;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
-using Telegram.Bot.Types.ReplyMarkups;
+using System.Text.Encodings.Web;
+using System.Text.Unicode;
+
 
 var botClient = new TelegramBotClient("5250704485:AAGO-A4Lt8BTdkFxwjrCIAUgu-mNkVtOscg");
+
+
+
 
 using var cts = new CancellationTokenSource();
 
@@ -34,6 +41,9 @@ Console.ReadLine();
 // Send cancellation request to stop bot
 cts.Cancel();
 
+
+
+
 async Task HandleUpdateAsync(ITelegramBotClient botClient, Update update, CancellationToken cancellationToken)
 {
     Random rnd = new();
@@ -51,21 +61,105 @@ async Task HandleUpdateAsync(ITelegramBotClient botClient, Update update, Cancel
     {
         return;
     }
-    var messageText = update.Message.Text?.Split('@')[0];
-    string[]? messageWords = messageText?.Split(' ');
 
-    Console.WriteLine($"Received a '{messageText}' message in chat {chatId}."); 
     
-        //await Shariy();
+
+    async Task Sticker()
+    {
+        /*StreamReader sr = new(@"C:\Users\38050\RiderProjects\Bot_Feodot\Bot_Feodot\marx.txt");
+        var quotes = sr.ReadToEnd().Split('\n');        */
+
+        string fileName = @"C:\Users\38050\RiderProjects\Bot_Feodot\Bot_Feodot\result.json";
+        string jsonString = System.IO.File.ReadAllText(fileName);
+        JsonSerializerOptions? options = new JsonSerializerOptions
+        {
+            
+            Encoder = JavaScriptEncoder.Create(UnicodeRanges.BasicLatin, UnicodeRanges.Cyrillic),
+            WriteIndented = true
+        };
+        Messages? feoMessages = 
+            JsonSerializer.Deserialize<Messages>(jsonString, options);
+        List<CustomMessage> feoMes = new List<CustomMessage>();
+        foreach (var mes in feoMessages?.messages!)
+        {
+            string? mesType = mes.media_type;
+            if (mes.from_id == "user5021024226" && mesType == "sticker" && mes.file.Contains("webp"))
+            {
+                feoMes.Add(mes);
+            }
+        }
+        var mesToSend = feoMes[rnd.Next(0, feoMes.Count)];
+        if (mesToSend.media_type == "sticker")
+        {
+            string path = @"https://raw.githubusercontent.com/PavelKuzennyi/BotF/main/stickers/" + 
+                          mesToSend.file.Split('/')[1].Replace(" ", "%20");
+            Console.WriteLine(path);
+            Message message = await botClient.SendStickerAsync(
+                chatId: chatId,
+                sticker: path,
+                cancellationToken: cancellationToken);
+        }
+    }
+
+    async Task FeoMes()
+    {
+        /*StreamReader sr = new(@"C:\Users\38050\RiderProjects\Bot_Feodot\Bot_Feodot\marx.txt");
+        var quotes = sr.ReadToEnd().Split('\n');        */
+
+        string quote = "";
+        string fileName = @"C:\Users\38050\RiderProjects\Bot_Feodot\Bot_Feodot\result.json";
+        string jsonString = System.IO.File.ReadAllText(fileName);
+        JsonSerializerOptions? options = new JsonSerializerOptions
+        {
+            Encoder = JavaScriptEncoder.Create(UnicodeRanges.BasicLatin, UnicodeRanges.Cyrillic),
+            WriteIndented = true
+        };
+        Messages? feoMessages = 
+            JsonSerializer.Deserialize<Messages>(jsonString, options);
+        List<CustomMessage> feoMes = new List<CustomMessage>();
+        foreach (var mes in feoMessages?.messages!)
+        {
+            string? thisMes = mes.text.ToString();
+            if (mes.from_id == "user5021024226" && thisMes != "") 
+            {
+                feoMes.Add(mes);
+            }
+            string? mesType = mes.media_type;
+            if (mes.from_id == "user5021024226" && mesType == "sticker" && mes.file.Contains("webp"))
+            {
+                feoMes.Add(mes);
+            }
+        }
+        var mesToSend = feoMes[rnd.Next(0, feoMes.Count)];
+        if (mesToSend.media_type == "sticker")
+        {
+            string path = @"https://raw.githubusercontent.com/PavelKuzennyi/Bot_Feodot/master/Bot_Feodot/stickers/" + 
+                          mesToSend.file.Split('/')[1].Replace(" ", "%20");
+            Console.WriteLine(path);
+            Message message = await botClient.SendStickerAsync(
+                chatId: chatId,
+                sticker: path,
+                cancellationToken: cancellationToken);
+        }
+        else
+        {
+            quote = mesToSend.text.ToString();
+            Message message = await botClient.SendTextMessageAsync(
+                chatId: chatId,
+                text: quote,
+                cancellationToken: cancellationToken);
+        }
+
+        await Message(quote);
+    }
     
     async Task Shiza()
     {
         int voiceNumber = rnd.Next(1, 13);
-        Message message;
         await using (var stream = System.IO.File.
-            OpenRead($@"C:\Users\38050\RiderProjects\Bot_Feodot\Bot_Feodot\shiz\{voiceNumber}.ogg")) 
+                         OpenRead($@"C:\Users\38050\RiderProjects\Bot_Feodot\Bot_Feodot\shiz\{voiceNumber}.ogg")) 
         {
-            message = await botClient.SendVoiceAsync(
+            Message message = await botClient.SendVoiceAsync(
                 chatId: chatId,
                 voice: stream,
                 cancellationToken: cancellationToken);
@@ -99,31 +193,39 @@ async Task HandleUpdateAsync(ITelegramBotClient botClient, Update update, Cancel
             cancellationToken: cancellationToken);
     }
     
-    async Task Shariy()
+    async Task Shariy(bool condition)
     {
-        var links = DownLoadHtml.HtmlRead("https://www.youtube.com/user/SuperSharij/videos");
-        var link = "https://www.youtube.com/"+links[1];
+        var links = DownLoadHtml.HtmlRead("https://www.youtube.com/c/STERNENKO/videos");
+        var firstLink = "https://www.youtube.com/"+links[1];
         StreamReader sr = new(@"C:\Users\38050\RiderProjects\Bot_Feodot\Bot_Feodot\shariy.txt");
         var shariy = sr.ReadToEnd().Split("\n");
         sr.Close();
-        if (!shariy.Contains(link))
+        if(condition)
         {
-            await using (StreamWriter sw = new(
-                @"C:\Users\38050\RiderProjects\Bot_Feodot\Bot_Feodot\shariy.txt",
-                false, System.Text.Encoding.Default))
-            {
-                await sw.WriteLineAsync(link+"\n");
-                sw.Close();
-            }
+            var link = "https://www.youtube.com/"+links[rnd.Next(1, links.Count)];
             Message message = await botClient.SendTextMessageAsync(
                 chatId: chatId,
                 text: link,
                 cancellationToken: cancellationToken);
         }
+        else if (!shariy.Contains(firstLink))
+        {
+            await using (StreamWriter sw = new(
+                             @"C:\Users\38050\RiderProjects\Bot_Feodot\Bot_Feodot\shariy.txt",
+                             false, System.Text.Encoding.Default))
+            {
+                await sw.WriteLineAsync(firstLink+"\n");
+                sw.Close();
+            }
+            Message message = await botClient.SendTextMessageAsync(
+                chatId: chatId,
+                text: firstLink,
+                cancellationToken: cancellationToken);
+        }
     }
 
 
-    async Task Frequency()
+    async Task Frequency(string[] messageWords)
     {
         if (messageWords[^1].All(char.IsDigit))
         {
@@ -154,56 +256,85 @@ async Task HandleUpdateAsync(ITelegramBotClient botClient, Update update, Cancel
         }
     }
 
-    if (messageWords != null && messageWords.Contains("Ф") 
-                             && (messageWords.Contains("пизди") || messageWords.Contains("пиздите") ))
-    {
-        await Frequency();
-    }
+    var updateText = update.Message.Text?.Split('@')[0];
+    var reply = update.Message.ReplyToMessage?.From;
     
-    if (messageWords != null && messageWords.Contains("Ф") 
-                             && (messageWords.Contains("Маркс") || messageWords.Contains("маркс") 
-                                                                || messageWords.Contains("Маркса") 
-                                                                || messageWords.Contains("маркса")))
+    await Message(updateText);
+    
+    async Task Message(string messageText)
     {
-        await Quote();
-    }
+        string[]? messageWords = messageText?.Split(' ');
+        
 
-    else switch (messageText)
-    {
-        case "/voice" :
-            await Voice();
-            break;
-        case "/shiza":
-            await Shiza();
-            break;
-        case "/cytata":
+        Console.WriteLine($"Received a '{messageText}' message in chat {chatId}."); 
+    
+        await Shariy(false);
+        if (messageWords != null && messageWords.Contains("Ф") 
+                                 && (messageWords.Contains("пизди") || messageWords.Contains("пиздите") ))
+        {
+            await Frequency(messageWords);
+        }
+        
+        if (messageWords != null && messageWords.Contains("Ф") 
+                                 && (messageWords.Contains("Маркс") || messageWords.Contains("маркс") 
+                                                                    || messageWords.Contains("Маркса") 
+                                                                    || messageWords.Contains("маркса")))
+        {
             await Quote();
-            break;
-        case "/shariy":
-            await Shariy();
-            break;
-        default:
-            StreamReader sr = new(@"C:\Users\38050\RiderProjects\Bot_Feodot\Bot_Feodot\timer.txt");
-            var frequency = int.Parse(sr.ReadToEnd());
-            sr.Close();
-            if (rnd.Next(0, frequency) == 0 || messageText == "Ф")
-            {
-                switch (rnd.Next(0, 3))
+        }
+    
+        else switch (messageText)
+        {
+            case "/voice" :
+                await Voice();
+                break;
+            case "/shiza":
+                await Shiza();
+                break;
+            case "/cytata":
+                await Quote();
+                break;
+            case "/sticker":
+                await Sticker();
+                break;
+            case "/shariy":
+                await Shariy(true);
+                break;
+            default:
+                StreamReader sr = new(@"C:\Users\38050\RiderProjects\Bot_Feodot\Bot_Feodot\timer.txt");
+                var frequency = int.Parse(sr.ReadToEnd());
+                sr.Close();
+                if (rnd.Next(0, frequency) == 0 || messageText == "Ф")
                 {
-                    case 0:
-                        await Voice();
-                        break;
-                    case 1:
-                        await Shiza();
-                        break;
-                    case 2:
-                        await Quote();
-                        break;
+                    switch (rnd.Next(0, 5))
+                    {
+                        case 0:
+                            await Voice();
+                            break;
+                        case 1:
+                            await Shiza();
+                            break;
+                        case 2:
+                            await Quote();
+                            break;
+                        case 3:
+                            await FeoMes();
+                            break;
+                        case 4:
+                            await Sticker();
+                            break;
+                    }
+                    break;
                 }
-            }
-            break;   
+    
+                if (messageText.Contains('Ф') || reply?.ToString() == "@feodot_bot (5250704485)")
+                {
+                    reply = null;
+                    await FeoMes();
+                }
+                break;   
+        }
     }
-
 }
 
 Task HandleErrorAsync(ITelegramBotClient botClient, Exception exception, CancellationToken cancellationToken)
